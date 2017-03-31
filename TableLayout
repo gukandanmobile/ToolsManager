@@ -1,0 +1,284 @@
+首先介绍一下官网如何定义TableLayout继承HorizontalScrollView集成FrameLayout继承ViewGroup父类
+
+添加Gradle依赖
+
+    compile 'com.android.support:design:25.1.0'
+    compile 'com.android.support:appcompat-v7:25.1.0'
+app:tabPadding=”3dp”//tab边距 
+app:tabTextColor=”@android:color/holo_red_light” // tab默认的文字颜色 
+app:tabSelectedTextColor=”@android:color/holo_blue_light” // tab被选中后，文字的颜色
+
+该布局主要为两个控件:第一部分为TableLayout组件该为Tab标签的容器，第二部分为ViewPager组件主要用于显示若干个Fragment进行页面切换。大家在TabLayout组件中应该已经注意到了三个自定义属性如下:
+
+只要大家看下源码就知道TableLayout的父类是ViewGroup因此满足一下继承关系毋容置疑！ 
+程序图：
+
+这里写图片描述
+<img src="http://img.blog.csdn.net/20170109123435948?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXFfMTU5NTAzMjU=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast
+"/>
+首先实现底部标题显示
+
+  //设置tablayout标签的显示方式
+        tabLayout.setTabMode(TabLayout.MODE_FIXED);
+        //循环注入标签
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+       for(String tab:titles){
+           tabLayout.addTab(tabLayout.newTab().setText(tab));
+       }
+
+设置点击事件 
+//设置TableLayout点 tabLayout.setOnTabSelectedListener(this); 
+mList.add(new StoreFragment()); 
+mList.add(new MerchandiseFragment()); 
+mList.add(new ArticleFragment()); 
+adapter=new MyViewPagerAdapter(getSupportFragmentManager(),titles,mList); 
+vp.setAdapter(adapter); 
+//将tablelayout与viewpager一起绑定 
+tabLayout.setupWithViewPager(vp);app:tabIndicatorColor=”@android:color/holo_green_dark” 下方滚动的下划线颜色 
+然后看下标题的数据来自是什么？相信大家很清楚来自一个字符串数组
+     private String[] titles={"店铺","商品","文章"};
+1
+    **选中状态**
+再看看适配器MyViewPagerAdapter
+package com.example.VerticalMarqueeTextView.adapter;
+
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by John on 2017/1/9.
+ */
+
+public class MyViewPagerAdapter extends FragmentPagerAdapter {
+    private List<Fragment> mList =new ArrayList<>();
+    private String[] titles;
+
+    public MyViewPagerAdapter(FragmentManager fm,String[] titles,List<Fragment> mList) {
+        super(fm);
+        this.titles=titles;
+        this.mList=mList;
+    }
+
+    @Override
+    public Fragment getItem(int position) {
+        return mList.get(position);
+    }
+    //3个条目
+    @Override
+    public int getCount() {
+        return mList.size();
+    }
+
+     //将标题与适配器绑定
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return titles[position];
+    }
+}
+
+点击上面的TableTitle切换不同的Fragment其实就是在集合里实例化每一个 Fragment代码如下
+
+       //设置TableLayout点击事件
+        tabLayout.setOnTabSelectedListener(this);
+        mList.add(new StoreFragment());
+        mList.add(new MerchandiseFragment());
+        mList.add(new ArticleFragment());
+接下来实现TableLayout与适配器关联代码如下
+
+  adapter=new MyViewPagerAdapter(getSupportFragmentManager(),titles,mList);
+        vp.setAdapter(adapter);
+        //将tablelayout与viewpager一起绑定
+        tabLayout.setupWithViewPager(vp);
+1
+2
+3
+4
+@Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        vp.setCurrentItem(tab.getPosition());
+
+    }
+
+下面看下布局文件activity_tablayout.xml其实就是一个相对布局下面放一个TableLayout这里不要导错包是v7 support-design包 如下图所示
+
+这里写图片描述
+
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+   android:gravity="center"
+   >
+    <android.support.design.widget.TabLayout
+        android:background="@drawable/tablayout_bg"
+        android:id="@+id/tablelayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:tabIndicatorColor="@android:color/holo_green_dark"
+        app:tabPadding="3dp"
+        app:tabTextColor="@android:color/holo_red_light"
+        app:tabSelectedTextColor="@android:color/holo_blue_light"
+       ></android.support.design.widget.TabLayout>
+    <android.support.v4.view.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_below="@id/tablelayout"
+        android:layout_height="match_parent"></android.support.v4.view.ViewPager>
+
+</RelativeLayout>
+
+
+因为这里我给tablelayout加了一个背景tablayout_bg.xml
+
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#ffcc00" />
+    <corners android:radius="23dp"/>
+    <stroke android:color="@android:color/holo_red_light" android:width="3dp"/>
+    <padding android:bottom="10dp" android:right="10dp" android:left="10dp" android:top="10dp"/>
+
+</shape>
+
+引用块内容
+ 然后看下Fragment里面的布局就是一个TextView我这里只写一个StoreFragment其他两个是一样的
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:padding="10dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="40sp"
+        android:gravity="center"
+        android:text="店铺"/>
+
+</LinearLayout>
+
+
+如图所示
+
+
+
+这里写图片描述
+
+最后看下主Activity全部代码
+
+package com.example.VerticalMarqueeTextView;
+
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+import android.support.v7.app.AppCompatActivity;
+
+import com.example.VerticalMarqueeTextView.adapter.MyViewPagerAdapter;
+import com.example.VerticalMarqueeTextView.fragment.ArticleFragment;
+import com.example.VerticalMarqueeTextView.fragment.MerchandiseFragment;
+import com.example.VerticalMarqueeTextView.fragment.StoreFragment;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Created by John on 2017/1/9.
+ */
+
+public class MainActivity extends AppCompatActivity implements TabLayout.OnTabSelectedListener {
+    private ViewPager vp;
+    private TabLayout tabLayout;
+    private List<Fragment> mList =new ArrayList<>();
+    private String[] titles={"店铺","商品","文章"};
+    private MyViewPagerAdapter adapter;
+    private int position;
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+//        requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_tablelayout);
+        initViews();
+    }
+
+    private void initViews() {
+        tabLayout= (TabLayout) findViewById(R.id.tablelayout);
+        vp= (ViewPager) findViewById(R.id.viewPager);
+        //设置tablayout标签的显示方式
+        tabLayout.setTabMode(TabLayout.MODE_FIXED);
+        //循环注入标签
+        tabLayout.setTabGravity(TabLayout.GRAVITY_FILL);
+       for(String tab:titles){
+           tabLayout.addTab(tabLayout.newTab().setText(tab));
+       }
+        //设置TableLayout点击事件
+        tabLayout.setOnTabSelectedListener(this);
+        mList.add(new StoreFragment());
+        mList.add(new MerchandiseFragment());
+        mList.add(new ArticleFragment());
+        adapter=new MyViewPagerAdapter(getSupportFragmentManager(),titles,mList);
+        vp.setAdapter(adapter);
+        //将tablelayout与viewpager一起绑定
+        tabLayout.setupWithViewPager(vp);
+    }
+
+    @Override
+    public void onTabSelected(TabLayout.Tab tab) {
+        vp.setCurrentItem(tab.getPosition());
+
+    }
+
+    @Override
+    public void onTabUnselected(TabLayout.Tab tab) {
+
+    }
+
+    @Override
+    public void onTabReselected(TabLayout.Tab tab) {
+
+    }
+}
+
+这四个自定义属性是TabLayout提供的，我们可以任意修改标题颜色以及指示器的颜色，除此之外还提供了以下一些风格设置方法:
+
+tabMaxWidth
+tabIndicatorColor
+tabIndicatorHeight
+tabPaddingStart
+tabPaddingEnd
+tabBackground
+tabTextAppearance
+tabSelectedTextColor
+
+r这里Tablayout很多属性在xml文件设置了，在代码中也可通过其方法自己设置，常用方法如下
+- addTab(TabLayout.Tab tab, int position, boolean setSelected) 增加选项卡到 layout 中
+- addTab(TabLayout.Tab tab, boolean setSelected) 同上
+- addTab(TabLayout.Tab tab) 同上
+- getTabAt(int index) 得到选项卡
+- getTabCount() 得到选项卡的总个数
+- getTabGravity() 得到 tab 的 Gravity
+- getTabMode() 得到 tab 的模式
+- getTabTextColors() 得到 tab 中文本的颜色
+- newTab() 新建个 tab
+- removeAllTabs() 移除所有的 tab
+- removeTab(TabLayout.Tab tab) 移除指定的 tab
+- removeTabAt(int position) 移除指定位置的 tab
+- setOnTabSelectedListener(TabLayout.OnTabSelectedListener onTabSelectedListener) 为每个 tab 增加选择监听器
+- setScrollPosition(int position, float positionOffset, boolean updateSelectedText) 设置滚动位置
+- setTabGravity(int gravity) 设置 Gravity
+- setTabMode(int mode) 设置 Mode,有两种值：TabLayout.MODE_SCROLLABLE和TabLayout.MODE_FIXED分别表示当tab的内容超过屏幕宽度是否支持横向水平滑动，第一种支持滑动，第二种不支持，默认不支持水平滑动。
+- setTabTextColors(ColorStateList textColor) 设置 tab 中文本的颜色
+- setTabTextColors(int normalColor, int selectedColor) 设置 tab 中文本的颜色 默认 选中
+- setTabsFromPagerAdapter(PagerAdapter adapter) 设置 PagerAdapter
+- setupWithViewPager(ViewPager viewPager) 和 ViewPager 联动
+
+
+转载请注明出处！http://blog.csdn.net/qq_15950325/article/details/54287832谢谢合作！另外可以加下我的Android群！疯狂Android进阶之旅大家一起开车哈！疯狂Android进阶之旅
