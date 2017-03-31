@@ -1,1 +1,2 @@
-# QRCodeCamera
+主要就是一些显示或者隐藏键盘 以及强制打开系统键盘等等
+本人博客地址http://blog.csdn.net/qq_15950325
